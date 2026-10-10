@@ -105,9 +105,14 @@ const QuestionManage = () => {
       dataIndex: "action",
       key: "action",
       render: (_, record) => (
+        <>
         <Button color="pink" variant="text" onClick={() => handleEdit(record)}>
           编辑数据
         </Button>
+        <Button color="red" variant="text" onClick={() => handleDelete(record)}>
+          删除数据
+        </Button>
+        </>
       ),
     },
   ];
@@ -149,8 +154,8 @@ const QuestionManage = () => {
     setDataSource((prev) => {
       let filterData =
         keyWord === ""
-          ? data
-          : data.filter((item) => item.name.includes(keyWord));
+          ? dataSource
+          : dataSource.filter((item) => item.name.includes(keyWord));
       console.log(prev);
       if (optionValue == "allOption") {
         return filterData;
@@ -159,6 +164,13 @@ const QuestionManage = () => {
       }
     });
   };
+  const handleDelete=(val)=>{
+    console.log(val)
+    setDataSource(prev=>{
+      console.log(prev.filter(item=>item.id!==val.id))
+      return prev.filter(item=>item.id!==val.id)
+    })
+  }
   const onFinish = (values) => {
     console.log("收集到的表单数据：", values);
     // setReceivedData(values);
@@ -175,7 +187,7 @@ const QuestionManage = () => {
       })
     } else {
       // 新增模式
-      const largestID = data.find(
+      const largestID = dataSource.find(
         (item) => item.id >= Math.max(...data.map((el) => el.id)),
       ).id;
       setDataSource((prev) => [
