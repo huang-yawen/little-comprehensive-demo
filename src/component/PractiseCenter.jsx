@@ -1,4 +1,5 @@
 import { Button, Radio } from "antd";
+import { useEffect } from "react";
 import { useMemo } from "react";
 import { useState } from "react";
 const questions = [
@@ -36,9 +37,29 @@ const questions = [
 //    - disabled 的值 = "什么情况下要禁用"。先用中文写出这句话（没选 -> 禁用），再翻译成代码：
 //      disabled={x === undefined}；能直接写成布尔表达式，就别再套 ? true : false。
 //    - 改完条件后，把"没选 / 选了 / 选了下标 0"三种情况各点一遍，确认按钮状态。
+// 【复盘】第二阶段：统计行 / 重新练习 / 刷新后保留进度（只记这一阶段新出现的问题）
+// 5) 分不清"选了"和"提交了"，是两件事、两个状态：
+//    - isRequiredArray 记"选了什么"（选项变化时改），ifShow 记"提交了哪些"（点提交时改）；想去改 handleChange 来判断提交，就是把两件事混在一起。
+//    - 统计"答对几题"要从"已提交"出发（ifShow 里有几个在答对列表里），不能直接数全部答对的，否则没提交也会被算进去。
+// 6) JSX 和字符串不一样：
+//    - 把 <p>...</p> 放进反引号模板字符串，页面上显示的是标签原文；要显示成段落，直接写 JSX：<p>{str}</p>。
+//    - 统计行放在 questions.map 里面会每题重复一遍，放在 map 外面才只出现一次、并且在顶部。
+// 7) 条件漏写了一种情况：提交按钮只在"没选"时禁用，漏了"已提交"，所以能重复提交、已提交数被多算。
+//    - disabled 要把所有该禁用的情况都列出来：没选 或 已提交。
+// 8) 复制粘贴后没有回头检查：文件末尾残留一段重复代码（两个 export default）和乱码，页面直接编译失败。
+//    - 改完把文件拉到底看一遍，或跑一次 eslint / 看终端有没有报错。
+// 9) localStorage：读和写要分开放。
+//    - 读：放在 useState 的初始值函数里（惰性初始值，只在组件第一次渲染时执行）；写：放在 useEffect 里，依赖写要保存的状态。
+//    - 不要在组件函数体或初始值函数里写 setItem，每次执行都会把旧数据清掉。
+//    - getItem 返回字符串或 null：要 JSON.parse 变回对象/数组；没存过时是 null，用 ?? 给默认值（不用 ||，|| 会把 0、"" 也当成没有）。
+//    - setItem 直接存对象/数组会变成 "[object Object]"，要先 JSON.stringify。
+// 10) 概念上容易混的两处：
+//    - 浏览器刷新：state 全部清空，初始值函数重新读一次存储；点击触发 set：组件重新渲染，state 保留，初始值函数不再执行。
+//    - set 触发重新渲染；useEffect 在渲染完成后（依赖变化时）才执行，只负责保存，不会触发渲染。
+//    - useMemo / useCallback 不阻止组件函数重新执行，只是依赖没变时复用上次的结果/函数引用；数据量小就直接写。
 function PractiseCenter() {
   // 已经做了的题目
-  const [isRequiredArray, setIsRequiredArray] = useState({});
+  const [isRequiredArray, setIsRequiredArray] = useState(() =>JSON.parse(localStorage.getItem("isRequiredArray"))??{});
   // 选择正确的题目
   const rightArray = useMemo(() => {
     return Object.keys(isRequiredArray)
@@ -56,17 +77,31 @@ function PractiseCenter() {
       // !!!!!!!
     });
   };
-  const [ifShow, setIfShow] = useState([]);
+  // 函数形式的初始值，react只在第一次渲染的时候调用它，这个是惰性初始值
+  const [ifShow, setIfShow] = useState(() => JSON.parse(localStorage.getItem("ifShow"))??[]);
+  // 使用两个问号 而不是两个或者符号
   const handleClick = (id) => {
     setIfShow((prev) => [...prev, id]);
+  };
+  const handleRedo = () => {
+    setIsRequiredArray({});
+    setIfShow([]);
   };
   const rightNum = rightArray.filter(
     (item) => item && ifShow.includes(item),
   ).length;
   const str = `已提交 ${ifShow.length}/${questions.length} 题,答对 ${rightNum} 题`;
+  useEffect(() => {
+    localStorage.setItem("isRequiredArray", JSON.stringify(isRequiredArray));
+    localStorage.setItem("ifShow", JSON.stringify(ifShow));
+  }, [isRequiredArray, ifShow]);
+
   return (
     <>
       <div>
+        <p>
+          {str} <button onClick={handleRedo}>重新练习</button>
+        </p>
         {questions.map((item) => {
           return (
             <div key={item.id}>
@@ -114,7 +149,6 @@ function PractiseCenter() {
             </div>
           );
         })}
-        <p>{str}</p>
       </div>
     </>
   );
