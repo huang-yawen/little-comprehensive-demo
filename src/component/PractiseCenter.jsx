@@ -1,7 +1,7 @@
-import { Button, Radio } from "antd";
 import { useEffect } from "react";
 import { useMemo } from "react";
 import { useState } from "react";
+import QuestionItem from "./QuestionItem";
 const questions = [
   {
     id: 1,
@@ -46,8 +46,6 @@ const questions = [
 //    - 统计行放在 questions.map 里面会每题重复一遍，放在 map 外面才只出现一次、并且在顶部。
 // 7) 条件漏写了一种情况：提交按钮只在"没选"时禁用，漏了"已提交"，所以能重复提交、已提交数被多算。
 //    - disabled 要把所有该禁用的情况都列出来：没选 或 已提交。
-// 8) 复制粘贴后没有回头检查：文件末尾残留一段重复代码（两个 export default）和乱码，页面直接编译失败。
-//    - 改完把文件拉到底看一遍，或跑一次 eslint / 看终端有没有报错。
 // 9) localStorage：读和写要分开放。
 //    - 读：放在 useState 的初始值函数里（惰性初始值，只在组件第一次渲染时执行）；写：放在 useEffect 里，依赖写要保存的状态。
 //    - 不要在组件函数体或初始值函数里写 setItem，每次执行都会把旧数据清掉。
@@ -59,7 +57,9 @@ const questions = [
 //    - useMemo / useCallback 不阻止组件函数重新执行，只是依赖没变时复用上次的结果/函数引用；数据量小就直接写。
 function PractiseCenter() {
   // 已经做了的题目
-  const [isRequiredArray, setIsRequiredArray] = useState(() =>JSON.parse(localStorage.getItem("isRequiredArray"))??{});
+  const [isRequiredArray, setIsRequiredArray] = useState(
+    () => JSON.parse(localStorage.getItem("isRequiredArray")) ?? {},
+  );
   // 选择正确的题目
   const rightArray = useMemo(() => {
     return Object.keys(isRequiredArray)
@@ -78,7 +78,9 @@ function PractiseCenter() {
     });
   };
   // 函数形式的初始值，react只在第一次渲染的时候调用它，这个是惰性初始值
-  const [ifShow, setIfShow] = useState(() => JSON.parse(localStorage.getItem("ifShow"))??[]);
+  const [ifShow, setIfShow] = useState(
+    () => JSON.parse(localStorage.getItem("ifShow")) ?? [],
+  );
   // 使用两个问号 而不是两个或者符号
   const handleClick = (id) => {
     setIfShow((prev) => [...prev, id]);
@@ -104,49 +106,15 @@ function PractiseCenter() {
         </p>
         {questions.map((item) => {
           return (
-            <div key={item.id}>
-              <div
-                style={{
-                  border: "1px solid black",
-                  width: "800px",
-                  height: "150px",
-                }}
-              >
-                <p>
-                  {item.id}:{item.title}
-                  <Button
-                    type="primary"
-                    disabled={
-                      (isRequiredArray[item.id] == undefined ? true : false) ||
-                      ifShow.includes(item.id)
-                    }
-                    onClick={() => handleClick(item.id)}
-                  >
-                    提交
-                  </Button>
-                  <span
-                    style={{
-                      display: ifShow.includes(item.id) ? "block" : "none",
-                    }}
-                  >
-                    {rightArray.includes(item.id) ? "回答正确" : "回答错误"}
-                  </span>
-                </p>
-                <div>
-                  <Radio.Group
-                    value={isRequiredArray[item.id]}
-                    onChange={(e) => handleChange(item.id, e.target.value)}
-                    disabled={ifShow.includes(item.id)}
-                  >
-                    {item.options.map((el, index) => (
-                      <span key={index}>
-                        <Radio value={index}>{el}</Radio>
-                      </span>
-                    ))}
-                  </Radio.Group>
-                </div>
-              </div>
-            </div>
+              <QuestionItem
+                key={item.id}
+                item={item}
+                handleChange={handleChange}
+                handleClick={handleClick}
+                isRequiredArray={isRequiredArray}
+                ifShow={ifShow}
+                rightArray={rightArray}
+              />
           );
         })}
       </div>
