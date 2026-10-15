@@ -1,20 +1,17 @@
-import { useState } from "react";
-import { useNameContext } from "../context/index";
+import { useContext } from "react";
+import { useNameContext } from "../context";
 function Profile() {
-  const [nameVal, setNameVal] = useState("");
-  const changeName = (newVal) => {
-    setNameVal(newVal);
-  };
+  const {nameVal,changeName}=useContext(useNameContext)
   return (
     <div>
-      <useNameContext.Provider value={nameVal}>
-        修改用户名字：
+      修改用户名字：
         <input
           type="text"
           value={nameVal}
-          onChange={(e) => changeName(e.target.value)}
+          onChange={(e) => {
+            changeName(e.target.value)
+          }}
         />
-      </useNameContext.Provider>
     </div>
   );
 }
