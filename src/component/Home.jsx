@@ -1,7 +1,9 @@
 import { Button } from "antd";
+import { useContext } from "react";
 import { useEffect } from "react";
 import { useRef } from "react";
 import { useState } from "react";
+import {useNameContext} from '../context/index'
 function Home() {
   const [timer, setTimer] = useState(0);
   const [flag, setFlag] = useState(false);
@@ -28,10 +30,12 @@ function Home() {
   useEffect(() => {
     iptBox.current.focus();
   },[]);
+  const {nameVal}=useContext(useNameContext)
   const showStr = `${parseInt(timer / 60) < 10 ? "0" + parseInt(timer / 60) : String(parseInt(timer / 60))}:${timer % 60 < 10 ? "0" + parseInt(timer % 60) : String(timer % 60)}`;
   return (
     <>
       <div>
+        <p>{nameVal}你好！欢迎回家</p>
         今天学习什么：
         <input type="text" ref={iptBox} />
         <p>已经学习{showStr}</p>
