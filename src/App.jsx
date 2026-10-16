@@ -25,6 +25,8 @@ const items = [
   getItem("练习中心", "/practise-center", <UserOutlined />),
   getItem("错题本", "/mistake-notebook", <TeamOutlined />),
   getItem("我的", "/profile", <FileOutlined />),
+  getItem("待办中心", "/todolist", <FileOutlined />),
+  getItem("memo测试", "/memotest", <PieChartOutlined />),
 ];
 // 【复盘】useContext：跨页面共享用户名 / 主题（只记这一阶段新出现的问题）
 // 19) Context 三步：createContext 创建 → Provider 包住需要的组件并通过 value 传值 → 子组件 useContext 读取。
